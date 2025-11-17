@@ -6,8 +6,8 @@ A lightweight full-text search application powered by Vespa and FastAPI. This pr
 
 This is a multi-part tutorial series:
 
-- **Part 1**: Set up Vespa search engine, ingest data, and query via curl
-- **Part 2**: Build an interactive web UI with FastAPI and modern frontend
+- **Part 1**: Set up Vespa search engine, ingest data, and query via curl (https://www.youtube.com/watch?v=lfoOtjLhKh8)
+- **Part 2**: Build an interactive web UI with FastAPI and modern frontend (https://www.youtube.com/watch?v=83k0gnqxE_s)
 - More coming soon
 
 
