@@ -19,6 +19,7 @@ from vespa.application import Vespa
 class SearchRequest(BaseModel):
     query: str
     limit: int | None = None
+    ranking: str | None = None
 
 
 RESULT_LIMIT = int(os.getenv("VESPA_RESULT_LIMIT", "10"))
@@ -46,15 +47,16 @@ def _resolve_limit(candidate: int | None) -> int:
     return max(MIN_RESULT_LIMIT, min(MAX_RESULT_LIMIT, limit_value))
 
 
-def run_vespa_query(query: str, limit: int | None = None) -> Dict[str, Any]:
+def run_vespa_query(query: str, limit: int | None = None, ranking: str | None = None) -> Dict[str, Any]:
     """Execute the Vespa search using the provided query string."""
     effective_limit = _resolve_limit(limit)
+    ranking_profile = ranking or "bm25"
     client = get_vespa_client()
     with client.syncio(connections=1) as session:
         response = session.query(
             yql=f"select * from sources * where userQuery() limit {effective_limit}",
             query=query,
-            ranking="bm25",
+            ranking=ranking_profile,
         )
 
     response_json = _safe_json(response)
@@ -74,6 +76,7 @@ def run_vespa_query(query: str, limit: int | None = None) -> Dict[str, Any]:
         "total_available": total_available,
         "latency_ms": latency_ms,
         "coverage": root.get("coverage") or {},
+        "ranking_profile": ranking_profile,
     }
 
 
@@ -157,7 +160,7 @@ async def search(request: SearchRequest) -> Dict[str, Any]:
         raise HTTPException(status_code=400, detail="Query must not be empty.")
 
     try:
-        payload = run_vespa_query(query, limit=request.limit)
+        payload = run_vespa_query(query, limit=request.limit, ranking=request.ranking)
     except Exception as exc:  # noqa: BLE001 - surface Vespa issues cleanly
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 

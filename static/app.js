@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("search-form");
   const queryInput = document.getElementById("query");
   const limitInput = document.getElementById("limit");
+  const rankingSelect = document.getElementById("ranking");
   const status = document.getElementById("status");
   const resultsEl = document.getElementById("results");
   const button = document.getElementById("search-button");
@@ -16,7 +17,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const renderHits = (payload) => {
-    const { hits = [], latency_ms = 0, total_available = 0 } = payload || {};
+    const { hits = [], latency_ms = 0, total_available = 0, ranking_profile } = payload || {};
     resultsEl.innerHTML = "";
 
     if (!hits.length) {
@@ -30,6 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <span><strong>${hits.length}</strong> shown</span>
       <span><strong>${total_available}</strong> total</span>
       <span>latency <strong>${latency_ms.toFixed(2)} ms</strong></span>
+      ${ranking_profile ? `<span>ranking <strong>${ranking_profile}</strong></span>` : ""}
     `;
     resultsEl.appendChild(summary);
 
@@ -60,6 +62,10 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     button.disabled = true;
+    form.classList.add("loading");
+    if (document.activeElement === queryInput) {
+      queryInput.blur();
+    }
     renderStatus("Searching…");
     resultsEl.innerHTML = "";
 
@@ -67,6 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const payloadBody = {
       query,
       limit: Number.isFinite(limitValue) ? limitValue : undefined,
+      ranking: rankingSelect ? rankingSelect.value : undefined,
     };
 
     try {
@@ -88,6 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error(error);
       renderStatus(error.message || "Something went wrong.", true);
     } finally {
+      form.classList.remove("loading");
       button.disabled = false;
     }
   });

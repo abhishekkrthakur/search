@@ -58,10 +58,22 @@ header p {
 
 form {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.search-row {
   display: grid;
-  grid-template-columns: 1fr auto auto;
+  grid-template-columns: 1fr auto;
   gap: 10px;
   align-items: center;
+}
+
+.settings-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
 input[type="search"],
@@ -75,6 +87,9 @@ input[type="number"] {
   font-size: 1rem;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  -webkit-appearance: none;
+  appearance: none;
+  line-height: 1.2;
 }
 
 input[type="search"]:focus,
@@ -85,17 +100,58 @@ input[type="number"]:focus {
 }
 
 .limit-control {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.9rem;
-  color: var(--muted);
-  min-width: 180px;
+  flex: 1 1 200px;
 }
 
 input[type="number"] {
   border-radius: 24px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.field-control {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.9rem;
+  color: var(--muted);
+  min-width: 200px;
+  flex: 1 1 200px;
+}
+
+select {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  background-color: var(--panel);
+  color: var(--text);
+  font-size: 1rem;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  -webkit-appearance: none;
+  appearance: none;
+  line-height: 1.2;
+  background-image: linear-gradient(45deg, transparent 50%, #5f6368 50%), linear-gradient(135deg, #5f6368 50%, transparent 50%);
+  background-position: calc(100% - 18px) 55%, calc(100% - 12px) 55%;
+  background-size: 6px 6px, 6px 6px;
+  background-repeat: no-repeat;
+  padding-right: 40px;
+}
+
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(26, 115, 232, 0.18);
+}
+
+.settings-row select,
+.settings-row input[type="number"] {
+  height: 52px;
+}
+
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button {
+  display: none;
 }
 
 button {
@@ -196,11 +252,15 @@ button:not(:disabled):hover {
 }
 
 @media (max-width: 720px) {
-  form {
+  .search-row {
     grid-template-columns: 1fr;
   }
 
   button {
     width: 100%;
+  }
+
+  .settings-row {
+    flex-direction: column;
   }
 }
