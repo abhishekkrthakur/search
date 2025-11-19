@@ -25,6 +25,17 @@ class SearchRequest(BaseModel):
 RESULT_LIMIT = int(os.getenv("VESPA_RESULT_LIMIT", "10"))
 MAX_RESULT_LIMIT = int(os.getenv("VESPA_MAX_RESULT_LIMIT", "100"))
 MIN_RESULT_LIMIT = 1
+DEFAULT_RANKING_PROFILE = os.getenv("VESPA_DEFAULT_RANKING", "bm25")
+RANKING_PROFILES = [
+    {"value": "bm25", "label": "bm25 (text + url default)"},
+    {"value": "bm25_text_only", "label": "bm25_text_only (text field only)"},
+    {"value": "bm25_url_only", "label": "bm25_url_only (url field only)"},
+    {"value": "bm25_comb_tuned", "label": "bm25_comb_tuned (custom bm25 constants)"},
+]
+_KNOWN_RANKING_VALUES = {profile["value"] for profile in RANKING_PROFILES}
+if DEFAULT_RANKING_PROFILE not in _KNOWN_RANKING_VALUES:
+    DEFAULT_RANKING_PROFILE = RANKING_PROFILES[0]["value"]
+del _KNOWN_RANKING_VALUES
 BASE_DIR = Path(__file__).parent
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
@@ -52,7 +63,7 @@ def run_vespa_query(
 ) -> Dict[str, Any]:
     """Execute the Vespa search using the provided query string."""
     effective_limit = _resolve_limit(limit)
-    ranking_profile = ranking or "bm25"
+    ranking_profile = ranking or DEFAULT_RANKING_PROFILE
     client = get_vespa_client()
     query_body = {
         "yql": "select * from sources * where userQuery()",
@@ -159,7 +170,7 @@ def get_total_documents() -> int | None:
             response = session.query(
                 yql="select * from sources * where true limit 0",
                 hits=0,
-                ranking="bm25",
+                ranking=DEFAULT_RANKING_PROFILE,
             )
         data = _safe_json(response)
         root = data.get("root", {}) or {}
@@ -183,6 +194,8 @@ async def home(request: Request) -> HTMLResponse:
             "default_limit": RESULT_LIMIT,
             "max_limit": MAX_RESULT_LIMIT,
             "total_documents": get_total_documents(),
+            "ranking_profiles": RANKING_PROFILES,
+            "default_ranking_profile": DEFAULT_RANKING_PROFILE,
         },
     )
 

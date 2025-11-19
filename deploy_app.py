@@ -42,6 +42,29 @@ package = ApplicationPackage(
                 FieldSet(name="default", fields=["text", "url"]),
             ],
             rank_profiles=[
+                # 1) BM25 only on text
+                RankProfile(
+                    name="bm25_text_only",
+                    functions=[
+                        Function(
+                            name="bm25text",
+                            expression="bm25(text)",
+                        ),
+                    ],
+                    first_phase="bm25text",
+                ),
+                # 2) BM25 only on url
+                RankProfile(
+                    name="bm25_url_only",
+                    functions=[
+                        Function(
+                            name="bm25url",
+                            expression="bm25(url)",
+                        ),
+                    ],
+                    first_phase="bm25url",
+                ),
+                # 3) Original combined BM25 (defaults for k and b)
                 RankProfile(
                     name="bm25",
                     functions=[
@@ -51,7 +74,24 @@ package = ApplicationPackage(
                         ),
                     ],
                     first_phase="bm25texturl",
-                )
+                ),
+                # --- 4) Combined BM25 with different k and b ---
+                RankProfile(
+                    name="bm25_comb_tuned",
+                    functions=[
+                        Function(
+                            name="bm25texturl_tuned",
+                            expression="bm25(text) + 0.1 * bm25(url)",
+                        ),
+                    ],
+                    first_phase="bm25texturl_tuned",
+                    rank_properties=[
+                        ("bm25(text).k1", "1.8"),
+                        ("bm25(text).b", "0.40"),
+                        ("bm25(url).k1", "0.9"),
+                        ("bm25(url).b", "0.30"),
+                    ],
+                ),
             ],
         ),
     ],
@@ -59,38 +99,4 @@ package = ApplicationPackage(
 
 vespa_docker = VespaDocker()
 app = vespa_docker.deploy(application_package=package)
-
-dataset = load_dataset(
-    "HuggingFaceFW/fineweb",
-    "CC-MAIN-2025-05",
-    split="train",
-    streaming=True,
-)
-vespa_feed = dataset.map(
-    lambda x: {
-        "id": x["id"],
-        "fields": {
-            "text": x["text"],
-            "url": x["url"],
-            "id": x["id"],
-        },
-    }
-)
-
-pbar = tqdm(desc="Feeding documents", unit="docs")
-feed_count = {"success": 0, "error": 0}
-
-
-def callback(response: VespaResponse, id: str):
-    if response.is_successful():
-        feed_count["success"] += 1
-    else:
-        feed_count["error"] += 1
-        pbar.write(f"Error when feeding document {id}: {response.get_json()}")
-    pbar.update(1)
-
-
-app.feed_iterable(
-    vespa_feed, schema="doc", callback=callback, max_workers=4, max_connections=4
-)
-pbar.close()
+package.to_files(root="./vespa_app")

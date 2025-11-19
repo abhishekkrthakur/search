@@ -1,0 +1,72 @@
+schema doc {
+    document doc {
+        field id type string {
+            indexing: summary
+        }
+        field text type string {
+            indexing: index | summary
+            index: enable-bm25
+        }
+        field url type string {
+            indexing: index | summary
+            index: enable-bm25
+        }
+    }
+    fieldset default {
+        fields: text, url
+    }
+    rank-profile bm25_text_only {
+        function bm25text() {
+            expression {
+                bm25(text)
+            }
+        }
+        first-phase {
+            expression {
+                bm25text
+            }
+        }
+    }
+    rank-profile bm25_url_only {
+        function bm25url() {
+            expression {
+                bm25(url)
+            }
+        }
+        first-phase {
+            expression {
+                bm25url
+            }
+        }
+    }
+    rank-profile bm25 {
+        function bm25texturl() {
+            expression {
+                bm25(text) + 0.1 * bm25(url)
+            }
+        }
+        first-phase {
+            expression {
+                bm25texturl
+            }
+        }
+    }
+    rank-profile bm25_comb_tuned {
+        function bm25texturl_tuned() {
+            expression {
+                bm25(text) + 0.1 * bm25(url)
+            }
+        }
+        first-phase {
+            expression {
+                bm25texturl_tuned
+            }
+        }
+        rank-properties {
+            bm25(text).k1: "1.8"
+            bm25(text).b: "0.40"
+            bm25(url).k1: "0.9"
+            bm25(url).b: "0.30"
+        }
+    }
+}

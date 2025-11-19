@@ -25,7 +25,11 @@
           <label class="field-control" for="ranking">
             <span>Ranking profile</span>
             <select id="ranking" name="ranking">
-              <option value="bm25" selected>bm25</option>
+              {% for profile in ranking_profiles %}
+              <option value="{{ profile.value }}" {% if profile.value == default_ranking_profile %}selected{% endif %}>
+                {{ profile.label }}
+              </option>
+              {% endfor %}
             </select>
           </label>
           <label class="field-control limit-control">
