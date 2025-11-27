@@ -7,6 +7,7 @@ Vespa + FastAPI demo that now covers both lexical BM25 and dense semantic retrie
 - Part 2: Build an interactive web UI with FastAPI and modern frontend (https://www.youtube.com/watch?v=83k0gnqxE_s)
 - Part 3: A no nonsense, applied intro to BM25 (https://www.youtube.com/watch?v=TW9vHU1GpU4)
 - Part 4: Hybrid search (lexical + dense) (https://www.youtube.com/watch?v=BXvCxG_H31M)
+- Part 5: What is reciprocal rank fusion? (https://youtu.be/2uBcjEecr38)
 
 More coming soon!
 
